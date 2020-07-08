@@ -7,6 +7,9 @@ Install and configure pmacct and components.
 ### pmacct source compile - features supported
 - kafka
 
+__TODO:__
+- configuration
+
 License
 -------
 
