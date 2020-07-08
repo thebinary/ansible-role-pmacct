@@ -1,0 +1,13 @@
+---
+- name: install development tools
+  package:
+    name:
+      - git
+      - libpcap-dev
+      - pkg-config
+      - libtool
+      - autoconf
+      - automake
+      - bash
+    state: present
+

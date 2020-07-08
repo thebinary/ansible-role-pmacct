@@ -1,0 +1,27 @@
+---
+# version of pmacct
+pmacct_version: 1.7.5
+
+# flags appended to pmacct - ./configure command
+# also respective flags are added as per enabled features
+config_params: ''
+
+# pmacct features
+enable_kafka: false
+
+# force pmacct source reconfigure and reinstall
+reconfigure: false
+
+# default argument used with make command
+make_args: '-j2'
+
+# directory to extract and configure package sources
+source_dir: '/usr/local/src'
+# username used for ownership of source tars and extracted directories
+build_user: 'root'
+# group used for ownership of source tars and extracted directories
+build_group: 'root'
+
+# vars for the jansson devel library required by kafka feature 
+jansson_version: 2.13.1
+jansson_lib_path: '/usr/local/lib/libjansson.so.4'

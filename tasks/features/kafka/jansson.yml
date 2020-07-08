@@ -1,0 +1,28 @@
+---
+- name: jansson - fetch source
+  get_url: 
+    url: "https://digip.org/jansson/releases/jansson-{{jansson_version}}.tar.gz"
+    dest: "{{source_dir}}/jansson-{{jansson_version}}.tar.gz"
+    force: no
+    owner: "{{build_user}}"
+    group: "{{build_group}}"
+    mode: '0440'
+
+- name: jansson - extract source
+  unarchive:
+    src: "{{source_dir}}/jansson-{{jansson_version}}.tar.gz"
+    dest: "{{source_dir}}"
+    owner: "{{build_user}}"
+    group: "{{build_group}}"
+    mode: '0755'
+    remote_src: yes
+
+- name: jansson - configure and install
+  command: "{{item}}"
+  args:
+    chdir: "{{source_dir}}/jansson-{{jansson_version}}"
+  loop: 
+    - ./configure
+    - "make {{make_args}}"
+    - make install
+    - ldconfig

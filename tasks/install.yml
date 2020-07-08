@@ -1,0 +1,67 @@
+---
+- name: git clone source repo
+  git:
+    repo: https://github.com/pmacct/pmacct.git
+    dest: "{{source_dir}}/pmacct-{{pmacct_version}}"
+    version: "v{{pmacct_version}}"
+
+- name: check configure script stat
+  stat:
+    path: "{{source_dir}}/pmacct-{{pmacct_version}}/configure"
+  register: configure_script
+
+- name: "compile: autogen"
+  command: "./autogen.sh"
+  args:
+    chdir: "{{source_dir}}/pmacct-{{pmacct_version}}"
+  when: not configure_script.stat.exists
+
+- name: check config.log path stat
+  stat:
+    path: "{{source_dir}}/pmacct-{{pmacct_version}}/config.log"
+  register: config_log
+
+- name: check last configure success in config.log
+  lineinfile:
+    path: "{{source_dir}}/pmacct-{{pmacct_version}}/config.log"
+    firstmatch: yes
+    regexp: 'configure: exit'
+    line: 'configure: exit 0'
+    state: present
+  check_mode: yes
+  register: config_success_check
+  ignore_errors: yes
+  when: config_log.stat.exists
+
+- name: read configure params from config.log
+  lineinfile:
+    path: "{{source_dir}}/pmacct-{{pmacct_version}}/config.log"
+    firstmatch: yes
+    regexp: '^(\s*)\$ ./configure'
+    backrefs: yes
+    line: "\\1$ ./configure {{config_params}}"
+    state: present
+  when: config_log.stat.exists and not config_success_check.changed
+  check_mode: yes
+  register: config_line
+  ignore_errors: yes
+
+- name: "mark re-configure"
+  set_fact: 
+    reconfigure: true
+  when: not config_log.stat.exists or config_success_check.failed or config_success_check.changed or config_line.changed
+
+- name: "compile: configure"
+  command: "./configure {{config_params}}"
+  args:
+    chdir: "{{source_dir}}/pmacct-{{pmacct_version}}"
+  when: reconfigure
+
+- name: "compile and install"
+  command: "{{item}}"
+  args:
+    chdir: "{{source_dir}}/pmacct-{{pmacct_version}}"
+  loop:
+    - "make {{make_args}}"
+    - make install
+  when: reconfigure

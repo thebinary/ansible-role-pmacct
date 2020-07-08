@@ -1,0 +1,22 @@
+galaxy_info:
+  role_name: pmacct
+  author: thebinary <binary4bytes@gmail.com>
+  description: Install and configure pmacct
+  company: TheBinary
+
+  license: MIT
+
+  min_ansible_version: 2.9
+
+  platforms:
+    - name: Ubuntu
+      verions:
+        - xenial
+        - bionic
+        - trusty
+
+  galaxy_tags:
+    - pmacct
+    - pmacctd
+
+dependencies: []
