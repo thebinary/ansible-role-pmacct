@@ -1,7 +1,7 @@
 - name: check jansson lib exist status
   stat:
-    path: "{{jansson_lib_path}}"
-  register: jansson 
+    path: "{{ jansson_lib_path }}"
+  register: jansson
 
 - name: compile and install jansson devel
   include_tasks: jansson.yml
@@ -9,14 +9,10 @@
 
 - name: add kafka enable flags
   set_fact:
-    config_params: "{{config_params}} --enable-kafka --enable-jansson"
+    config_params: "{{ config_params }} --enable-kafka --enable-jansson"
 
 - name: install kafka devel
   package:
-    name: 
+    name:
     - librdkafka-dev
     state: present
-
-- name: install jansson
-  debug:
-    msg: install jansson

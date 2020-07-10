@@ -1,0 +1,10 @@
+[Unit]
+Description=pmacct - {{item}} daemon
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/sbin/{{item}} -f {{pmacctd_config_dir}}/{{pmacctd_config_file}}
+
+[Install]
+WantedBy=multi-user.target

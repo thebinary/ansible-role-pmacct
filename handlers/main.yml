@@ -1,2 +1,14 @@
 ---
-# handlers file for pmacct
+- name: "compilation: mark recompile"
+  set_fact:
+    force_recompile: true
+
+- name: systemd daemon reload
+  systemd:
+    daemon_reload: yes
+
+- name: restart services
+  systemd:
+    state: restarted
+    name: "{{ item }}"
+  loop: "{{ enabled_services }}"

@@ -1,13 +1,36 @@
 ---
-# tasks file for pmacct
 - name: setup development environment
-  include_tasks: dev-tools.yml
-  when: ansible_distribution == "Ubuntu"
+  include_tasks:
+    file: dev-tools.yml
+    apply:
+      tags:
+        - install
+  tags:
+    - install
 
 - name: pre-requisites for enabled features
-  include_tasks: features/main.yml
+  include_tasks:
+    file: features/main.yml
+    apply:
+      tags:
+        - install
+  tags:
+    - install
 
-- name: installation for ubuntu
-  include_tasks: install.yml
-  when: ansible_distribution == "Ubuntu"
+- name: installation
+  include_tasks:
+    file: install.yml
+    apply:
+      tags:
+        - install
+  tags:
+    - install
 
+- name: configure pmacctd
+  include_tasks:
+    file: configure.yml
+    apply:
+      tags:
+        - configure
+  tags:
+    - configure

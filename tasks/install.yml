@@ -2,66 +2,83 @@
 - name: git clone source repo
   git:
     repo: https://github.com/pmacct/pmacct.git
-    dest: "{{source_dir}}/pmacct-{{pmacct_version}}"
-    version: "v{{pmacct_version}}"
+    dest: "{{ source_dir }}/pmacct-{{ pmacct_version }}"
+    version: "v{{ pmacct_version }}"
 
-- name: check configure script stat
+- name: 'compilation: check configure script stat'
   stat:
-    path: "{{source_dir}}/pmacct-{{pmacct_version}}/configure"
+    path: "{{ source_dir }}/pmacct-{{ pmacct_version }}/configure"
   register: configure_script
 
-- name: "compile: autogen"
-  command: "./autogen.sh"
+- name: 'compilation: autogen'
+  command: './autogen.sh'
   args:
-    chdir: "{{source_dir}}/pmacct-{{pmacct_version}}"
+    chdir: "{{ source_dir }}/pmacct-{{ pmacct_version }}"
   when: not configure_script.stat.exists
 
-- name: check config.log path stat
+- name: 'compilation: check config.log path stat'
   stat:
-    path: "{{source_dir}}/pmacct-{{pmacct_version}}/config.log"
+    path: "{{ source_dir }}/pmacct-{{ pmacct_version }}/config.log"
   register: config_log
 
-- name: check last configure success in config.log
+- name: 'compilation: mark recompile on first execution'
+  set_fact:
+    force_recompile: true
+  when: not config_log.stat.exists
+
+- name: 'compilation: verify last configure success using config.log'
   lineinfile:
-    path: "{{source_dir}}/pmacct-{{pmacct_version}}/config.log"
+    path: "{{ source_dir }}/pmacct-{{ pmacct_version }}/config.log"
     firstmatch: yes
     regexp: 'configure: exit'
     line: 'configure: exit 0'
     state: present
   check_mode: yes
-  register: config_success_check
   ignore_errors: yes
   when: config_log.stat.exists
+  notify: 'compilation: mark recompile'
 
-- name: read configure params from config.log
+- name: run handlers
+  meta: flush_handlers
+
+- name: 'compilation: verify params used in last configure using config.log'
   lineinfile:
-    path: "{{source_dir}}/pmacct-{{pmacct_version}}/config.log"
+    path: "{{ source_dir }}/pmacct-{{ pmacct_version }}/config.log"
     firstmatch: yes
     regexp: '^(\s*)\$ ./configure'
     backrefs: yes
-    line: "\\1$ ./configure {{config_params}}"
+    line: "\\1$ ./configure {{ config_params }}"
     state: present
-  when: config_log.stat.exists and not config_success_check.changed
   check_mode: yes
-  register: config_line
   ignore_errors: yes
+  when: config_log.stat.exists and not force_recompile|bool
+  notify: 'compilation: mark recompile'
 
-- name: "mark re-configure"
-  set_fact: 
-    reconfigure: true
-  when: not config_log.stat.exists or config_success_check.failed or config_success_check.changed or config_line.changed
+- name: run handlers
+  meta: flush_handlers
 
-- name: "compile: configure"
-  command: "./configure {{config_params}}"
+- name: 'compilation: configure, compile and install'
+  command: "{{ item }}"
   args:
-    chdir: "{{source_dir}}/pmacct-{{pmacct_version}}"
-  when: reconfigure
-
-- name: "compile and install"
-  command: "{{item}}"
-  args:
-    chdir: "{{source_dir}}/pmacct-{{pmacct_version}}"
+    chdir: "{{ source_dir }}/pmacct-{{ pmacct_version }}"
   loop:
-    - "make {{make_args}}"
-    - make install
-  when: reconfigure
+    - "./configure {{ config_params }}"
+    - "make -j{{ make_jobs }} {{ make_args }}"
+    - "make -j{{ make_jobs }} install"
+  when: force_recompile|bool
+
+- name: create service definitions
+  template:
+    src: service.j2
+    dest: "/etc/systemd/system/{{ item }}.service"
+    group: root
+    owner: root
+    mode: 0640
+  loop:
+    - pmacctd
+    - nfacctd
+    - pmbgpd
+    - pmbmpd
+    - pmtelemetryd
+    - sfacctd
+  notify: systemd daemon reload

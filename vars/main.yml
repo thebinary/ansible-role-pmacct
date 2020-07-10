@@ -1,2 +1,9 @@
 ---
-# vars file for pmacct
+# version of pmacct
+pmacct_version: 1.7.5
+# pmacctd.conf parameters
+pmacctd_config:
+  daemonize: false
+enabled_services:
+  - pmacctd
+  - nfacctd

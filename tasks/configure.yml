@@ -1,0 +1,19 @@
+- name: ensure config dir exists
+  file:
+    path: "{{ pmacctd_config_dir }}"
+    state: directory
+    owner: "{{ pmacctd_user }}"
+    group: "{{ pmacctd_group }}"
+
+- name: display configuration parameters
+  debug:
+    msg: "{{ pmacctd_config }}"
+
+- name: generate config
+  template:
+    src: pmacctd.conf.j2
+    dest: "{{ pmacctd_config_dir }}/{{ pmacctd_config_file }}"
+    owner: "{ {pmacctd_user }}"
+    group: "{{ pmacctd_group }}"
+    mode: 0640
+  notify: restart services
