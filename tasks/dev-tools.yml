@@ -10,4 +10,3 @@
       - automake
       - bash
     state: present
-
