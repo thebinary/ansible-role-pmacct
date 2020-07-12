@@ -5,6 +5,10 @@
     owner: "{{ pmacctd_user }}"
     group: "{{ pmacctd_group }}"
 
+- name: build pmacctd config values
+  set_fact:
+    pmacctd_config: "{{ pmacctd_default_config | combine(pmacctd_config) }}"
+
 - name: display configuration parameters
   debug:
     msg: "{{ pmacctd_config }}"
@@ -13,7 +17,7 @@
   template:
     src: pmacctd.conf.j2
     dest: "{{ pmacctd_config_dir }}/{{ pmacctd_config_file }}"
-    owner: "{ {pmacctd_user }}"
+    owner: "{{ pmacctd_user }}"
     group: "{{ pmacctd_group }}"
     mode: 0640
   notify: restart services

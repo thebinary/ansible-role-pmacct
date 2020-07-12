@@ -29,3 +29,6 @@ pmacctd_config_dir: /etc/pmacct
 pmacctd_config_file: pmacctd.conf
 pmacctd_user: root
 pmacctd_group: root
+
+pmacctd_default_config:
+  daemonize: false
